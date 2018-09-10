@@ -1,0 +1,138 @@
+安装依赖
+Ruby version >= 2.2.2 
+
+yum -y install gcc gcc-c++ libstdc++-devel make CFLAGS="-march=x86-64"
+
+安装redis
+
+tar xzf redis-2.6.13.tar.gz
+mv redis-2.6.13 /usr/local/redis
+make
+make install 
+
+echo vm.overcommit_memory=1 >> /etc/sysctl.conf
+echo vm.overcommit_memory=1 >>/proc/sys/vm/overcommit_memory
+
+配置集群
+---------------------------------------------
+mkdir -p /usr/local/redis/cluster/6379
+mkdir -p /usr/local/redis/cluster/6380
+添加配置文件 redis_6379.conf
+
+安装ruby
+gpg2 --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3
+curl -L get.rvm.io | bash -s stable
+find / -name rvm -print
+source /usr/local/rvm/scripts/rvm
+rvm list known
+rvm install 2.3.3
+rvm use 2.3.3
+rvm use 2.3.3 --default
+rvm remove 2.0.0
+gem install redis
+
+带有密码的集群需要将密码写入ruby配置文件中
+vim /usr/local/rvm/gems/ruby-2.3.3/gems/redis-4.0.2/lib/redis/client.rb
+
+:password => 'password',
+
+---------------------------------------------
+
+
+
+能起来集群的配置文件应该至少如下
+port 7000
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+
+
+./redis-trib.rb create --replicas 1 192.168.99.121:8001 192.168.99.121:8002 192.168.99.121:8003 192.168.99.121:8004 192.168.99.121:8005 192.168.99.121:8006
+
+
+
+查看状态：
+redis-cli -h 127.0.0.1 -p 6379 -a myPassword 
+
+redis-cli -c -h 172.30.100.117 -p 6379
+
+info replication
+
+cluster nodes
+
+redis config-file
+---------------------------------------------------------------------------------------
+bind 172.30.100.117
+protected-mode yes
+port 6379
+
+cluster-config-file node_6379.conf
+cluster-enabled yes
+cluster-node-timeout 10000
+
+tcp-backlog 511
+timeout 0
+tcp-keepalive 300
+daemonize yes
+supervised no
+pidfile /usr/local/redis/cluster/6379/redis_6379.pid
+loglevel notice
+logfile ""
+databases 16
+always-show-logo yes
+save 900 1
+save 300 10
+save 60 10000
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename dump.rdb
+dir /usr/local/redis/cluster/6379
+slave-serve-stale-data yes
+slave-read-only yes
+repl-diskless-sync no
+repl-diskless-sync-delay 5
+repl-disable-tcp-nodelay no
+slave-priority 100
+lazyfree-lazy-eviction no
+lazyfree-lazy-expire no
+lazyfree-lazy-server-del no
+slave-lazy-flush no
+#appendonly no
+appendonly yes
+appendfilename "6379_appendonly.aof"
+appendfsync everysec
+no-appendfsync-on-rewrite no
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+aof-use-rdb-preamble no
+lua-time-limit 5000
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 0
+notify-keyspace-events ""
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-size -2
+list-compress-depth 0
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+hll-sparse-max-bytes 3000
+activerehashing yes
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit slave 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+hz 10
+aof-rewrite-incremental-fsync yes
+
+
+rename-command FLUSHALL ""
+rename-command FLUSHDB  ""
+rename-command CONFIG   ""
+rename-command EVAL     ""
+masterauth MJU&@ucenterredis 
+requirepass MJU&@ucenterredis
+---------------------------------------------------------------------------------------
