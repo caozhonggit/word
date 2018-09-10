@@ -1,5 +1,5 @@
 安装依赖
-Ruby version >= 2.2.2 
+Ruby version >= 2.2.2 (集群时安装)
 
 yum -y install gcc gcc-c++ libstdc++-devel make CFLAGS="-march=x86-64"
 
