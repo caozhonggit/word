@@ -1,0 +1,163 @@
+yum -y install openssl-devel libcurl
+
+mkdir /usr/local/mongodb
+tar xf mongodb-linux-x86_64-4.0.0.tgz
+mv mongodb-linux-x86_64-4.0.0 /usr/local/mongodb
+cd /usr/local/mongodb
+mkdir data
+mkdir log
+mkdir etc
+cd etc
+
+vim mongodb.conf
+-----------------------------------
+dbpath=/usr/local/mongodb/data
+logpath=/usr/local/mongodb/log/mongodb.log
+bind_ip=0.0.0.0
+port=27017
+fork=true
+journal=false
+-----------------------------------
+
+cd ../bin/
+./mongod --config /usr/local/mongodb/etc/mongodb.conf
+或
+./mongod -f /usr/local/mongodb/etc/mongodb.conf
+--------------------------------------------------------------------------------------------------------------
+echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
+echo "never" >  /sys/kernel/mm/transparent_hugepage/defrag
+
+vim /etc/security/limits.conf
+添加一下几行
+mongod  soft  nofile  64000
+mongod  hard  nofile  64000
+mongod  soft  nproc  32000
+mongod  hard  nproc  32000
+--------------------------------------------------------------------------------------------------------------
+use admin
+db.createUser(
+  {
+    user: "caixin", //用户名
+    pwd: "Passw0rd", //密码
+    roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] //权限
+  }
+)
+
+添加额外权限用户
+
+use admin
+db.createUser({user: 'root', pwd: 'Passw0rd', roles: ['root']})
+----------------------------------------------------------------------------------------------------------------
+启动 
+ ./mongod -f /usr/local/mongodb/etc/mongodb.conf
+关闭
+ ./mongod -f /usr/local/mongodb/etc/mongodb.conf --shutdown
+或
+ ./mongod --shutdown --dbpath /usr/local/mongodb/data/master
+
+
+集群安装
+
+只是配置文件不同，分为master/slave/arbiter 三个配置文件分别对应相应的主机
+在每台主机上创建目录
+mkdir -p /usr/local/mongodb/data/master
+mkdir -p /usr/local/mongodb/data/slave
+mkdir -p /usr/local/mongodb/data/arbiter
+
+
+master 配件文件
+所有主机的配置文件开始都需要关闭密码认证,等添加完用户后再开启。从库是通过KEY的方式读取数据的。读取的库为local.
+vim /usr/local/mongodb/etc/mongodb_master.conf
+----------------------------------------------------------
+#master.conf
+dbpath=/usr/local/mongodb/data/master
+logpath=/usr/local/mongodb/log/master.log
+pidfilepath=/usr/local/mongodb/master.pid
+#keyFile=/usr/local/mongodb/mongodb.key
+directoryperdb=true
+logappend=true
+replSet=caixinmongo
+bind_ip=172.30.100.139
+port=27017
+#auth=true
+oplogSize=100
+fork=true
+noprealloc=true
+#maxConns=4000
+----------------------------------------------------------
+slave 配置文件
+vim /usr/local/mongodb/etc/mongodb_slave.conf
+----------------------------------------------------------
+#master.conf
+dbpath=/usr/local/mongodb/data/slave
+logpath=/usr/local/mongodb/log/slave.log
+pidfilepath=/usr/local/mongodb/slave.pid
+#keyFile=/usr/local/mongodb/mongodb.key
+directoryperdb=true
+logappend=true
+replSet=caixinmongo
+bind_ip=172.30.100.142
+port=27017
+#auth=true
+oplogSize=100
+fork=true
+noprealloc=true
+#maxConns=4000
+----------------------------------------------------------
+arbiter 配置文件
+vim /usr/local/mongodb/etc/mongodb_arbiter.conf
+----------------------------------------------------------
+#master.conf
+dbpath=/usr/local/mongodb/data/arbiter
+logpath=/usr/local/mongodb/log/arbiter.log
+pidfilepath=/usr/local/mongodb/arbiter.pid
+#keyFile=/usr/local/mongodb/mongodb.key
+directoryperdb=true
+logappend=true
+replSet=caixinmongo
+bind_ip=172.30.100.96
+port=27017
+#auth=true
+oplogSize=100
+fork=true
+noprealloc=true
+#maxConns=4000
+----------------------------------------------------------
+
+启动三台主机 创建群集
+use admin
+cfg={ _id:"caixinmongo", members:[ {_id:0,host:'172.30.100.139:27017',priority:2}, {_id:1,host:'172.30.100.142:27017',priority:1}, {_id:2,host:'172.30.100.96:27017',arbiterOnly:true}] };
+rs.initiate(cfg)
+
+cfg名字可选，只要跟mongodb参数不冲突，_id为Replica Set名字，priority值高的为主节点，对于仲裁点一定要加上arbiterOnly:true，否则主备模式不生效.
+
+----------------------------------------------------------
+查看是否生效
+rs.status()
+----------------------------------------------------------
+生效后创建用户
+
+use admin
+db.createUser(
+  {
+    user: "caixin", //用户名
+    pwd: "Passw0rd", //密码
+    roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] //权限
+  }
+)
+
+添加额外权限用户
+
+use admin
+db.createUser({user: 'root', pwd: 'Passw0rd', roles: ['root']})
+----------------------------------------------------------
+修改配置文件启动认证，并且开启KEY认证。
+生成KEY
+openssl rand -base64 741 > /usr/local/mongodb/mongodb.key
+chmod 400 /usr/local/mongodb/mongodb.key
+----------------------------------------------------------
+服务重启并查看运行日志
+
+
+
+
