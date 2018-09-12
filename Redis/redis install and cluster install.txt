@@ -1,5 +1,5 @@
-安装依赖
-Ruby version >= 2.2.2 (集群时安装)
+﻿安装依赖
+Ruby version >= 2.2.2 
 
 yum -y install gcc gcc-c++ libstdc++-devel make CFLAGS="-march=x86-64"
 
@@ -60,6 +60,8 @@ redis-cli -c -h 172.30.100.117 -p 6379
 info replication
 
 cluster nodes
+
+cluster info
 
 redis config-file
 ---------------------------------------------------------------------------------------
@@ -133,6 +135,8 @@ rename-command FLUSHALL ""
 rename-command FLUSHDB  ""
 rename-command CONFIG   ""
 rename-command EVAL     ""
+
+#redis集群密码选项
 masterauth MJU&@ucenterredis 
 requirepass MJU&@ucenterredis
 ---------------------------------------------------------------------------------------
