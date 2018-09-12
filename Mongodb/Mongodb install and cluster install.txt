@@ -156,7 +156,10 @@ db.createUser({user: 'root', pwd: 'Passw0rd', roles: ['root']})
 openssl rand -base64 741 > /usr/local/mongodb/mongodb.key
 chmod 400 /usr/local/mongodb/mongodb.key
 ----------------------------------------------------------
-服务重启并查看运行日志
+服务重启并查看运行日志及集群状态
+mongo -u root -p Passw0rdcaixin 172.30.100.139/admin
+rs.status()
+
 
 
 
