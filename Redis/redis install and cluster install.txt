@@ -8,10 +8,14 @@ yum -y install gcc gcc-c++ libstdc++-devel make CFLAGS="-march=x86-64"
 tar xzf redis-2.6.13.tar.gz
 mv redis-2.6.13 /usr/local/redis
 make
-make install 
+make PREFIX=/usr/local/redis   install
 
 echo vm.overcommit_memory=1 >> /etc/sysctl.conf
-echo vm.overcommit_memory=1 >>/proc/sys/vm/overcommit_memory
+
+vim /etc/rc.local
+echo 1 > /proc/sys/vm/overcommit_memory
+echo 511 > /proc/sys/net/core/somaxconn
+echo never > /sys/kernel/mm/transparent_hugepage/enabled
 
 配置集群
 ---------------------------------------------
@@ -31,10 +35,10 @@ rvm use 2.3.3 --default
 rvm remove 2.0.0
 gem install redis
 
-带有密码的集群需要将密码写入ruby配置文件中
+带有密码的集群需要将密码写入ruby配置文件中(集群创建前不要设置密码)
 vim /usr/local/rvm/gems/ruby-2.3.3/gems/redis-4.0.2/lib/redis/client.rb
 
-:password => 'password',
+:password => 'pEAxLtQ2g3MKEmwv',
 
 ---------------------------------------------
 
@@ -60,8 +64,6 @@ redis-cli -c -h 172.30.100.117 -p 6379
 info replication
 
 cluster nodes
-
-cluster info
 
 redis config-file
 ---------------------------------------------------------------------------------------
@@ -135,8 +137,8 @@ rename-command FLUSHALL ""
 rename-command FLUSHDB  ""
 rename-command CONFIG   ""
 rename-command EVAL     ""
-
-#redis集群密码选项
-masterauth MJU&@ucenterredis 
-requirepass MJU&@ucenterredis
+masterauth pEAxLtQ2g3MKEmwv
+requirepass pEAxLtQ2g3MKEmwv
 ---------------------------------------------------------------------------------------
+Redis 启动警告错误解决
+https://blog.csdn.net/a19860903/article/details/46874991
