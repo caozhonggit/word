@@ -1,0 +1,50 @@
+##############################################################################################
+## I use the following command definition: 
+## $USER1$/check_by_ssh -t 25 -H $HOSTADDRESS$ -l admin -C \'$USER1$/check_errpt\' 
+## 
+## For the service definition you don\'t want to configure any retry\'s since it check for new reports since last time run. 
+## Max. Check Attempts=1 
+##############################################################################################
+
+
+
+#!/bin/bash
+# script that checks for new errpt
+#
+errptlast=/tmp/errptlast
+errpttmp=/tmp/errpttmp
+admin=root@localhost
+#
+# check if first run
+errpt | egrep -v '^IDENTIFIER' > $errpttmp
+if [ ! -f $errptlast ] ; then
+	# first run generate a timestamp - 1 hour to fake last run
+	phour=$((`date +%H` - 2))
+	date +%m%d$phour%M%y > $errptlast
+fi
+lastts=`cat $errptlast`
+count=`errpt -s "$lastts" | egrep -v '^IDENTIFIER' | wc -l`
+exit1=$?
+count=`echo $count`
+countcrit=`errpt -s "$lastts" | egrep -v '^IDENTIFIER' | sed -n 's!.* \(P\) .*!\1!p' | wc -l`
+exit2=$?
+countcrit=`echo $countcrit`
+if [ "$count" -ge 1 ]  ; then
+		# determine level
+		errpt -A -D -s "$lastts" | mail -s "$count new error reports of which $countcrit critical  on `hostname` since $lastts" $admin 	
+		date +%m%d%H%M%y > $errptlast
+		if [ "$countcrit" -ge 1 ] ; then
+			echo "$count new error reports of which $countcrit critical generated since $lastts"
+			exit 2
+		else
+			echo "$count New error reports generated since $lastts"
+			exit 1
+		fi
+fi
+if [ "$count" == 0 ] && [ "$countcrit" == 0 ] && [ "$exit1" == 0 ] && [ "$exit2" == 0 ] ; then
+	echo "No new Error Reports since $lastts"
+	exit 0
+fi
+echo "Errpt Check failed"
+exit 3
+
