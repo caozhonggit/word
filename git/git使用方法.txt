@@ -1,0 +1,60 @@
+安装
+
+git init
+git config user.name "caozhong"
+git config user.email "caozhong@hotmail.com"
+
+------------------------------------------------------------------------------
+生成 SSH KEY
+ssh-keygen.exe -t rsa -C "caozhong@hotmail.com"
+添加公钥到远程仓库
+cat ~/.ssh/id_rsa.pub
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC0X6L1zLL4VHuvGb8aJH3ippTozmReSUzgntvk434aJ/v7kOdJ/MTyBlWXFCR+HAo3FXRitBqxiX1nKhXpHAZsMciLq8vR3c8E7CjZN733f5AL8uEYJA+YZevY5UCvEg+umT7PHghKYaJwaCxV7sjY
+P7Z6V79OMCEAGDNXC26IBMdMgOluQjp6o6j2KAdtRBdCDS/QIU5THQDxJ9lBXjk1fiq9tITo/aXBvjZeD+gH/Apkh/0GbO8VQLiYYmNfqqAHHeXdltORn8N7C9lOa/UW3KM7QdXo6J0GFlBVQeTE/IGqhMS5PMln3 admin@admin-PC
+登陆你的github帐户。点击你的头像，然后 Settings -> 左栏点击 SSH and GPG keys -> 点击 New SSH key
+然后你复制上面的公钥内容，粘贴进“Key”文本域内。 title域，自己随便起个名字。
+点击 Add key。
+完成以后，验证下这个key是不是正常工作：
+
+$ ssh -T git@github.com
+
+Attempts to ssh to github
+如果，看到：
+Hi xxx! You've successfully authenticated, but GitHub does not # provide shell access.
+恭喜你，你的设置已经成功了。
+
+修改git的remote url
+--------------------------------------------------------------------------------
+ 
+使用命令 git remote -v 查看你当前的 remote url
+$ git remote -v
+origin https://github.com/someaccount/someproject.git (fetch)
+origin https://github.com/someaccount/someproject.git (push)
+------------------------------------------------------------------------------
+
+使用
+千万不要使用Windows自带的记事本编辑任何文本文件。原因是Microsoft开发记事本的团队使用了一个非常弱智的行为来保存UTF-8编码的文件，他们自作聪明地在每个文件开头添加了0xefbbbf（十六进制）的字符，
+你会遇到很多不可思议的问题，比如，网页第一行可能会显示一个“?”，明明正确的程序一编译就报语法错误，等等，都是由记事本的弱智行为带来的。建议你下载Notepad++代替记事本，不但功能强大，而且免费！
+记得把Notepad++的默认编码设置为UTF-8 without BOM即可.
+
+命令
+git add file
+git commit -m "informashen"
+
+git status     查看仓库当前的状态
+git diff file     查看更改了哪里
+
+--pretty=oneline
+
+git reset --hard head^    （上一个版本就是HEAD^，上上一个版本就是HEAD^^，当然往上100个版本写100个^比较容易数不过来，所以写成HEAD~100）
+git reset --hard CommitID    恢复到指定版本
+git reflog                               恢复操作日志
+git checkout -- file                丢弃工作区的修改
+rm                                        使用git checkout -- file 从版本库中恢复
+git rm                                    删除工作区的文件 （使用 git reset --hard head 恢复）
+
+git 远程仓库
+git remote add origin git@github.com:caozhonggit/word.git
+git push -u origin master   第一次
+git push origin master
+git clone
