@@ -1,0 +1,34 @@
+https://docs.gitlab.com    文档
+
+1.环境准备
+yum install -y curl policycoreutils-python openssh-server openssh-clients cronie ca-certificates
+
+lokkit -s http -s ssh
+
+yum install postfix
+service postfix start
+chkconfig postfix on
+
+1.下载GitLab
+https://packages.gitlab.com/gitlab/gitlab-ce
+
+vim /etc/gitlab/gitlab.rb
+external_url "http://gitlab.example.com"
+
+gitlab-ctl reconfigure    使更改生效
+
+
+
+
+
+
+gitlab 常用命令
+
+gitlab-ctl start    # 启动所有 gitlab 组件；
+gitlab-ctl stop        # 停止所有 gitlab 组件；
+gitlab-ctl restart        # 重启所有 gitlab 组件；
+gitlab-ctl status        # 查看服务状态；
+gitlab-ctl reconfigure        # 启动服务；
+vim /etc/gitlab/gitlab.rb        # 修改默认的配置文件；
+gitlab-rake gitlab:check SANITIZE=true --trace    # 检查gitlab；
+gitlab-ctl tail        # 查看日志
